@@ -1,0 +1,469 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String    @id @default(uuid())
+  fullName            String    @map("full_name")
+  gender               String?   @default("m")
+  email                String    @unique
+  phoneNumber         String?   @map("phone_number") @unique
+  passwordHash        String?   @map("password_hash")
+  pinHash              String?
+  status               Status    @default(INACTIVE)
+  picture              String?
+  birthdate            DateTime?
+  domicile             String?
+  profileCompletedAt   BigInt?   @map("profile_completed_at")
+  createdAt            BigInt    @map("created_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+  updatedAt            BigInt?   @map("updated_at")
+
+  accounts             OAuthAccount[]
+  sessions             Session[]
+  verification         TokenVerification[]
+  roles                UserRole[]
+  transactions         CoinTransaction[]
+  userCoins            UserCoin[] 
+  tours                Tour[]
+  tourReviews          TourReview[] 
+  vouchers             Voucher[]
+  userPromotions       UserPromotion[] 
+  userVouchers         UserVoucher[] 
+  coinTopups           CoinTopup[] 
+  coinResetRules       CoinResetRule[] 
+  auditLogs            AuditLog[] 
+  
+  adminResets          CoinReset[] @relation(name: "AdminResets") 
+  customerResets       CoinReset[] @relation(name: "CustomerResets") 
+
+  @@map("users")
+}
+
+model OAuthAccount {
+  id            String   @id @default(uuid())
+  userId       String   @map("user_id")
+  provider      String
+  providerId    String   @map("provider_id") @unique
+  refreshToken  String?  @map("refresh_token")
+  accessToken   String?  @map("access_token")
+  expiresAt     BigInt?  @map("expires_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+  createdAt     BigInt   @map("created_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+  updatedAt     BigInt?  @map("updated_at")
+
+  user          User     @relation(fields: [userId], references: [id])
+
+  @@map("oauth_accounts")
+}
+
+model Session {
+  id            String   @id @default(uuid())
+  userId       String     @map("user_id")
+  refreshToken String     @map("refresh_token")  @unique
+  userAgent    String     @map("user_agent")
+  ipAddress    String     @map("ip_address")
+  expiresAt    BigInt     @map("expires_at")
+  createdAt    BigInt     @map("created_at")  @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+
+  user         User @relation(fields: [userId], references: [id])
+
+  @@map("sessions")
+}
+
+model TokenVerification {
+  id         String              @id @default(uuid())
+  userId    String               @map("user_id")  @unique
+  email      String               @unique
+  token      String                @unique
+  type       TokenVerificationType
+  expires    BigInt
+  isUsed    Boolean              @map("is_used")  @default(false)
+  createdAt BigInt               @map("created_at")  @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("token_verifications")
+}
+
+model Role {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  description String
+  status      Status      @default(INACTIVE)
+
+  user_roles  UserRole[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  id         String   @id @default(uuid())
+  userId    String    @map("user_id")  
+  roleId    String    @map("role_id")  
+  createdAt BigInt    @map("created_at")  @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+
+  user User @relation(fields: [userId], references: [id])
+  role Role @relation(fields: [roleId], references: [id])
+
+  @@map("user_roles")
+}
+
+model Tour {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  phoneNumber  String   @map("phone_number")  @unique
+  description  String?
+  location     String
+  latitude     Float?
+  longitude    Float?
+  category     TourCategory   @default(ENTERTAINMENT)
+  status       Status @default(ACTIVE)
+  rating       Float    @default(0.0)
+  reviewCount  Int      @map("review_count")  @default(0)
+  picture      String[]
+  createdBy   String    @map("created_by")
+  createdAt   BigInt    @map("created_at")  @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+  updatedAt  BigInt?    @map("updated_at")
+
+  facilities   Facility[]
+  employees    Employee[]
+  reviews      TourReview[]
+  promotions   Promotion[]
+
+  created_by_user User @relation(fields: [createdBy], references: [id])
+
+  @@map("tours")
+}
+
+model TourReview {
+  id         String   @id @default(uuid())
+  tourId    String    @map("tour_id")
+  userId    String    @map("user_id")
+  review     String?
+  rate       Int      @default(0)
+  createdAt BigInt    @map("created_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+
+  tour Tour @relation(fields: [tourId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("tour_reviews")
+}
+
+model FacilityType {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+
+  facility Facility[]
+
+  @@map("facility_types")
+}
+
+model Facility {
+  id             String   @id @default(uuid())
+  tourId         String   @map("tour_id")
+  facilityTypeId Int      @map("facility_type_id")
+  name           String
+  barcode        String   @unique
+  isActive       Boolean  @map("is_active") @default(true)
+  createdAt      BigInt   @map("created_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+  updatedAt      BigInt?  @map("updated_at")
+
+  facilityPricing  FacilityPricing[]
+  facilityEmployee FacilityEmployee[]
+  voucher          Voucher[]
+
+  tour         Tour         @relation(fields: [tourId], references: [id])
+  facilityType FacilityType @relation(fields: [facilityTypeId], references: [id])
+
+  @@map("facilities")
+}
+
+model FacilityPricing {
+  id         String   @id @default(uuid())
+  facilityId String   @map("facility_id")
+  price      Int
+  currency   String   @default("IDR")
+  startDate  BigInt   @map("start_date")
+  endDate    BigInt?  @map("end_date") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+  createdAt  BigInt   @map("created_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+  updatedAt  BigInt?  @map("updated_at")
+
+  facility Facility @relation(fields: [facilityId], references: [id])
+
+  @@map("facility_pricings")
+}
+
+model Employee {
+  id         String   @id @default(uuid())
+  tourId     String   @map("tour_id")
+  fullName   String   @map("full_name")
+  phone      String   @unique
+  status     Status   @default(ACTIVE)
+  createdAt  BigInt   @map("created_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+  updatedAt  BigInt?  @map("updated_at")
+
+  facilityEmployee FacilityEmployee[]
+
+  tour Tour @relation(fields: [tourId], references: [id])
+
+  @@map("employees")
+}
+
+model FacilityEmployee {
+  id          String    @id @default(uuid())
+  facilityId  String    @map("facility_id")
+  employeeId  String    @map("employee_id")
+  position    String
+  startDate   BigInt    @map("start_date")
+  endDate     BigInt?   @map("end_date") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+  createdAt   BigInt    @map("created_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+  updatedAt   BigInt?   @map("updated_at")
+
+  facility Facility @relation(fields: [facilityId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("facility_employees")
+}
+
+model Promotion {
+  id             String       @id @default(uuid())
+  tourId        String?      @map("tour_id")
+  name           String
+  description    String?
+  discountType   DiscountType @map("discount_type")
+  discountValue  Float        @map("discount_value")
+  maxDiscount    Int?         @map("max_discount")
+  minSpend       Int?         @map("min_spend")
+  quota          Int          @default(0)
+  usedQuota      Int          @map("used_quota") @default(0)
+  startDate      BigInt       @map("start_date")
+  endDate        BigInt       @map("end_date")
+  isActive       Boolean      @map("is_active") @default(false)
+  createdAt      BigInt       @map("created_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+  updatedAt      BigInt?      @map("updated_at")
+
+  userPromotion  UserPromotion[]
+
+  tour Tour? @relation(fields: [tourId], references: [id])
+
+  @@map("promotions")
+}
+
+model Voucher {
+  id             String       @id @default(uuid())
+  facilityId    String?      @map("facility_id")
+  code           String       @unique
+  name           String
+  description    String?
+  discountType   DiscountType @map("discount_type")
+  discountValue  Float        @map("discount_value")
+  maxDiscount    Int?         @map("max_discount")
+  minSpend       Int?         @map("min_spend")
+  quota          Int          @default(0)
+  usedQuota      Int          @map("used_quota") @default(0)
+  userId         String?      @map("user_id")
+  startDate      BigInt       @map("start_date")
+  endDate        BigInt       @map("end_date")
+  isActive       Boolean      @map("is_active") @default(false)
+  createdAt      BigInt       @map("created_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+  updatedAt      BigInt?      @map("updated_at")
+
+  userVoucher UserVoucher[]
+
+  facility Facility? @relation(fields: [facilityId], references: [id])
+  user     User?     @relation(fields: [userId], references: [id])
+
+  @@map("vouchers")
+}
+model UserPromotion {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  promotionId String    @map("promotion_id")
+  isUsed      Boolean   @map("is_used") @default(false)
+  usedAt      BigInt?   @map("used_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+  createdAt   BigInt    @map("created_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+
+  user      User      @relation(fields: [userId], references: [id])
+  promotion Promotion @relation(fields: [promotionId], references: [id])
+
+  @@map("user_promotions")
+}
+
+model UserVoucher {
+  id         String    @id @default(uuid())
+  userId     String    @map("user_id")
+  voucherId  String    @map("voucher_id")
+  isUsed     Boolean   @map("is_used") @default(false)
+  usedAt     BigInt?   @map("used_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+  createdAt  BigInt    @map("created_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+
+  user    User    @relation(fields: [userId], references: [id])
+  voucher Voucher @relation(fields: [voucherId], references: [id])
+
+  @@map("user_vouchers")
+}
+
+model CoinSetting {
+  id           String   @id @default(uuid())
+  pricePerCoin Float    @map("price_per_coin")
+  minPurchase  Int      @map("min_purchase") @default(10)
+  maxPurchase  Int      @map("max_purchase") @default(10000)
+  createdAt    BigInt   @map("created_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+  updatedAt    BigInt?  @map("updated_at")
+
+  @@map("coin_settings")
+}
+
+model CoinTopup {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  paymentRef    String   @map("payment_ref")
+  amount        Int
+  priceTotal    Float    @map("price_total")
+  paymentStatus ProcessStatus @map("payment_status")
+  paymentMethod String    @map("payment_method")
+  createdAt     BigInt    @map("created_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+  updatedAt     BigInt?   @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("coin_topups")
+  @@index([userId, createdAt])
+  CoinTransaction CoinTransaction[]
+}
+
+model UserCoin {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id") @unique
+  balance      Int      @default(0)
+  lastResetAt  BigInt?  @map("last_reset_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+  version      Int      @default(1) // Optimistic locking
+  createdAt    BigInt   @map("created_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+  updatedAt    BigInt?  @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_coins")
+}
+
+model CoinTransaction {
+  id              String          @id @default(uuid())
+  userId          String          @map("user_id")
+  transactionType TransactionType @map("transaction_type")
+  amount          Int
+  priceTotal      Decimal?        @map("price_total")
+  relatedId       String?         @map("related_id")
+  createdAt       BigInt          @map("created_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+
+  relatedTopup    CoinTopup?      @relation(fields: [relatedId], references: [id])
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("coin_transactions")
+  @@index([userId, createdAt])
+  @@index([transactionType, createdAt])
+}
+
+model CoinReset {
+  id              String   @id @default(uuid())
+  adminId         String   @map("admin_id")
+  userId          String   @map("user_id")
+  previousBalance Int      @map("previous_balance")
+  resetReason     String?  @map("reset_reason")
+  resetAt         BigInt   @map("reset_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+
+  admin User @relation(name: "AdminResets", fields: [adminId], references: [id])  
+  user  User @relation(name: "CustomerResets", fields: [userId], references: [id])
+
+  @@map("coin_resets")
+}
+
+model CoinResetRule {
+  id             String         @id @default(uuid())
+  resetEnabled   Boolean        @map("reset_enabled") @default(false)
+  resetDate      BigInt?        @map("reset_date") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+  resetTime      BigInt?        @map("reset_time") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+  resetFrequency ResetFrequency @map("reset_frequency")
+  resetAdminId   String         @map("reset_admin_id")
+  lastUpdatedAt  BigInt?        @map("last_updated_at")
+  updatedAt      BigInt?        @map("updated_at")
+
+  admin User @relation(fields: [resetAdminId], references: [id])
+
+  @@map("coin_reset_rules")
+}
+
+model AuditLog {
+  id        String @id @default(uuid())
+  userId    String @map("user_id")
+  action    String
+  entity    String
+  entityId  String @map("entity_id")
+  timestamp BigInt @default(dbgenerated("extract(epoch FROM now()) * 1000"))
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+
+enum TokenVerificationType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+enum ProcessStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  APPROVED
+  REJECTED
+}
+
+enum Status {
+  INACTIVE
+  ACTIVE
+  SUSPENDED
+}
+
+enum TransactionType {
+  TOPUP
+  PURCHASE
+  SPEND
+  REFUND
+  RESET
+}
+
+enum ResetFrequency {
+  MONTHLY
+  YEARLY
+  CUSTOM
+}
+
+enum TourCategory {
+  ENTERTAINMENT
+  CULINARY
+  EDUCATION
+  NATURE
+  CULTURE_HISTORY
+  RELIGI
+  ADVENTURE
+  HEALTH
+}
