@@ -7,7 +7,7 @@ export const verifyJWT = async (token: string, jwtsecret: string) => {
 export const createJWT = async (
     payload: string | object,
     jwtsecret: string,
-    expires: jwt.SignOptions
+    options: any
 ) => {
-    return jwt.sign(payload, jwtsecret, expires);
+    return jwt.sign(payload, jwtsecret, options);
 };
