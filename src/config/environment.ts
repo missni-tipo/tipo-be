@@ -8,5 +8,5 @@ export const env = {
     REFRESH_TOKEN_EXPIRES_IN:
         Number(process.env.REFRESH_TOKEN_EXPIRES_IN) ||
         30 * 24 * 60 * 60 * 1000,
-    OTP_EXPIRES_IN: Number(process.env.OTP_EXPIRES_IN) || 10 * 60 * 1000,
+    OTP_EXPIRES_IN: Number(process.env.OTP_EXPIRES_IN) || 1 * 60 * 1000,
 };

@@ -4,18 +4,18 @@ import { env } from "@/config/environment";
 import { BaseRepository } from "@/core/repositories/base.repository";
 import { verifyJWT } from "../utils/jwt.util";
 import { User } from "@prisma/client";
+import { UserService } from "@/core/services/user.service";
+import { UserRepository } from "@/core/repositories/user.repository";
+
+const userService = new UserService(new UserRepository());
 
 export interface AuthRequest extends Request {
     user?: {
-        userId: string;
+        id: string;
         fullName: string;
+        status: string;
         roles: object;
     };
-}
-
-export interface userRolesData {
-    id: string;
-    name: string;
 }
 
 export const Authenticate = async (
@@ -35,33 +35,11 @@ export const Authenticate = async (
         throw new AppError(401, "Authentication required");
     }
 
-    const decoded = (await verifyJWT(token, env.JWT_SECRET)) as any;
+    const decoded = (await verifyJWT(token, env.JWT_SECRET)) as { id: string };
 
-    type UserWithRoles = User & {
-        roles: { role: userRolesData }[];
-    };
+    const user = await userService.getUserWithRoles(decoded.id);
 
-    const user = (await repo.findOne(
-        { id: decoded.id },
-        {
-            roles: {
-                include: { role: true },
-            },
-        }
-    )) as UserWithRoles;
-
-    if (!user) {
-        throw new AppError(404, "User not found");
-    }
-
-    req.user = {
-        userId: user.id,
-        fullName: user.fullName,
-        roles: user.roles.map((item) => ({
-            id: item.role.id,
-            name: item.role.name,
-        })),
-    };
+    req.user = user;
 
     next();
 };

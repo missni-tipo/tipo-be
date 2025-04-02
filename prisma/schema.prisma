@@ -16,12 +16,12 @@ datasource db {
 model User {
   id                   String    @id @default(uuid())
   fullName            String    @map("full_name")
-  gender               String?   @default("m")
+  gender               GenderType?   @default(MALE)
   email                String    @unique
   phoneNumber         String?   @map("phone_number") @unique
   passwordHash        String?   @map("password_hash")
   pinHash              String?
-  status               Status    @default(INACTIVE)
+  status               StatusType    @default(INACTIVE)
   picture              String?
   birthdate            DateTime?
   domicile             String?
@@ -99,7 +99,7 @@ model Role {
   id          String     @id @default(uuid())
   name        String     @unique
   description String
-  status      Status      @default(INACTIVE)
+  status      StatusType      @default(INACTIVE)
 
   user_roles  UserRole[]
 
@@ -127,8 +127,8 @@ model Tour {
   location     String
   latitude     Float?
   longitude    Float?
-  category     TourCategory   @default(ENTERTAINMENT)
-  status       Status @default(ACTIVE)
+  category     TourCategoryType   @default(ENTERTAINMENT)
+  status       StatusType @default(ACTIVE)
   rating       Float    @default(0.0)
   reviewCount  Int      @map("review_count")  @default(0)
   picture      String[]
@@ -210,7 +210,7 @@ model Employee {
   tourId     String   @map("tour_id")
   fullName   String   @map("full_name")
   phone      String   @unique
-  status     Status   @default(ACTIVE)
+  status     StatusType   @default(ACTIVE)
   createdAt  BigInt   @map("created_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
   updatedAt  BigInt?  @map("updated_at")
 
@@ -332,7 +332,7 @@ model CoinTopup {
   paymentRef    String   @map("payment_ref")
   amount        Int
   priceTotal    Float    @map("price_total")
-  paymentStatus ProcessStatus @map("payment_status")
+  paymentStatus ProcessStatusType @map("payment_status")
   paymentMethod String    @map("payment_method")
   createdAt     BigInt    @map("created_at") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
   updatedAt     BigInt?   @map("updated_at")
@@ -395,7 +395,7 @@ model CoinResetRule {
   resetEnabled   Boolean        @map("reset_enabled") @default(false)
   resetDate      BigInt?        @map("reset_date") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
   resetTime      BigInt?        @map("reset_time") @default(dbgenerated("extract(epoch FROM now()) * 1000"))
-  resetFrequency ResetFrequency @map("reset_frequency")
+  resetFrequency ResetFrequencyType @map("reset_frequency")
   resetAdminId   String         @map("reset_admin_id")
   lastUpdatedAt  BigInt?        @map("last_updated_at")
   updatedAt      BigInt?        @map("updated_at")
@@ -429,7 +429,7 @@ enum DiscountType {
   FIXED
 }
 
-enum ProcessStatus {
+enum ProcessStatusType {
   PENDING
   SUCCESS
   FAILED
@@ -437,7 +437,7 @@ enum ProcessStatus {
   REJECTED
 }
 
-enum Status {
+enum StatusType {
   INACTIVE
   ACTIVE
   SUSPENDED
@@ -451,13 +451,13 @@ enum TransactionType {
   RESET
 }
 
-enum ResetFrequency {
+enum ResetFrequencyType {
   MONTHLY
   YEARLY
   CUSTOM
 }
 
-enum TourCategory {
+enum TourCategoryType {
   ENTERTAINMENT
   CULINARY
   EDUCATION
@@ -466,4 +466,9 @@ enum TourCategory {
   RELIGI
   ADVENTURE
   HEALTH
+}
+
+enum GenderType {
+    MALE
+    FEMALE
 }

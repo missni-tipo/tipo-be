@@ -2,12 +2,12 @@ import "module-alias/register";
 import {
     DiscountType,
     PrismaClient,
-    ProcessStatus,
-    ResetFrequency,
-    Status,
+    ProcessStatusType,
+    ResetFrequencyType,
+    StatusType,
     TransactionType,
     TokenVerificationType,
-    TourCategory,
+    TourCategoryType,
 } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { roleBase } from "../src/shared/enums/roleBase.enum";
@@ -17,6 +17,7 @@ import {
     addMonthsFromNow,
     addYearsFromNow,
 } from "@/shared/utils/dateTimeManipulation.util";
+import { GenderType } from "@/shared/enums/gender.enum";
 
 const prisma = new PrismaClient();
 
@@ -27,17 +28,17 @@ async function main() {
             {
                 name: roleBase.CUSTOMER,
                 description: "Regular user",
-                status: Status.ACTIVE,
+                status: StatusType.ACTIVE,
             },
             {
                 name: roleBase.ADMIN,
                 description: "Tour Admin",
-                status: Status.ACTIVE,
+                status: StatusType.ACTIVE,
             },
             {
                 name: roleBase.DEV,
                 description: "Developer or System Admin",
-                status: Status.ACTIVE,
+                status: StatusType.ACTIVE,
             },
         ],
         skipDuplicates: true,
@@ -46,14 +47,14 @@ async function main() {
     interface UserSeedData {
         id: string;
         fullName: string;
-        gender: "m" | "f";
+        gender: GenderType;
         birthdate: Date;
         domicile: string;
         email: string;
         phoneNumber: string;
         passwordHash: string;
         pinHash: string;
-        status: Status;
+        status: StatusType;
         picture: string;
         profileCompletedAt: number | null;
         createdAt: number;
@@ -65,14 +66,14 @@ async function main() {
         {
             id: uuidv4(),
             fullName: "Budi Santoso",
-            gender: "m",
+            gender: GenderType.MALE,
             birthdate: new Date(),
             domicile: "Surabaya",
             email: "budi.santoso@example.com",
             phoneNumber: "081234567891",
             passwordHash: "password123",
             pinHash: "123456",
-            status: Status.ACTIVE,
+            status: StatusType.ACTIVE,
             picture: "https://picsum.photos/300",
             profileCompletedAt: date,
             createdAt: Date.now(),
@@ -81,14 +82,14 @@ async function main() {
         {
             id: uuidv4(),
             fullName: "Siti Aminah",
-            gender: "f",
+            gender: GenderType.FEMALE,
             birthdate: new Date(),
             domicile: "Yogyakarta",
             email: "siti.aminah@example.com",
             phoneNumber: "082198765432",
             passwordHash: "password123",
             pinHash: "123456",
-            status: Status.ACTIVE,
+            status: StatusType.ACTIVE,
             picture: "https://picsum.photos/300",
             profileCompletedAt: Date.now(),
             createdAt: Date.now(),
@@ -97,14 +98,14 @@ async function main() {
         {
             id: uuidv4(),
             fullName: "Doni Prasetyo",
-            gender: "m",
+            gender: GenderType.MALE,
             birthdate: new Date(),
             domicile: "Semarang",
             email: "doni.prasetyo@example.com",
             phoneNumber: "081312345678",
             passwordHash: "password123",
             pinHash: "123456",
-            status: Status.ACTIVE,
+            status: StatusType.ACTIVE,
             picture: "https://picsum.photos/300",
             profileCompletedAt: null,
             createdAt: Date.now(),
@@ -113,14 +114,14 @@ async function main() {
         {
             id: uuidv4(),
             fullName: "Linda Pertiwi",
-            gender: "f",
+            gender: GenderType.FEMALE,
             birthdate: new Date(),
             domicile: "Bali",
             email: "linda.pertiwi@example.com",
             phoneNumber: "081256789012",
             passwordHash: "password123",
             pinHash: "123456",
-            status: Status.ACTIVE,
+            status: StatusType.ACTIVE,
             picture: "https://picsum.photos/300",
             profileCompletedAt: null,
             createdAt: Date.now(),
@@ -242,8 +243,8 @@ async function main() {
                 location: "Jakarta Utara",
                 latitude: -6.1185,
                 longitude: 106.9034,
-                category: TourCategory.ENTERTAINMENT,
-                status: Status.ACTIVE,
+                category: TourCategoryType.ENTERTAINMENT,
+                status: StatusType.ACTIVE,
                 rating: 4.7,
                 reviewCount: 25,
                 picture: [
@@ -263,8 +264,8 @@ async function main() {
                 location: "Jakarta Utara",
                 latitude: -6.118,
                 longitude: 106.9,
-                category: TourCategory.ENTERTAINMENT,
-                status: Status.ACTIVE,
+                category: TourCategoryType.ENTERTAINMENT,
+                status: StatusType.ACTIVE,
                 rating: 4.5,
                 reviewCount: 40,
                 picture: [
@@ -366,7 +367,7 @@ async function main() {
                 tourId: tour.id,
                 fullName: "Budi Santoso",
                 phone: "081212345678",
-                status: Status.ACTIVE,
+                status: StatusType.ACTIVE,
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
             },
@@ -375,7 +376,7 @@ async function main() {
                 tourId: tour.id,
                 fullName: "Siti Aminah",
                 phone: "081298765432",
-                status: Status.ACTIVE,
+                status: StatusType.ACTIVE,
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
             },
@@ -532,7 +533,7 @@ async function main() {
             paymentRef: `PAY-${uuidv4()}`,
             amount: 100,
             priceTotal: 100000,
-            paymentStatus: ProcessStatus.SUCCESS,
+            paymentStatus: ProcessStatusType.SUCCESS,
             paymentMethod: "bank_transfer",
             createdAt: Date.now(),
             updatedAt: Date.now(),
@@ -585,7 +586,7 @@ async function main() {
             resetEnabled: true,
             resetDate: addYearsFromNow(1),
             resetTime: Date.now(),
-            resetFrequency: ResetFrequency.YEARLY,
+            resetFrequency: ResetFrequencyType.YEARLY,
             resetAdminId: admin.id,
             lastUpdatedAt: Date.now(),
         },

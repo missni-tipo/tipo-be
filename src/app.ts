@@ -3,8 +3,8 @@ import "express-async-errors";
 import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
-import apiV1Routes from "./api/v1";
-import { errorHandler } from "./shared/middlewares/error.midleware";
+import apiV1Routes from "./api/v1/index.route";
+import { errorHandler } from "./shared/middlewares/error.middleware";
 
 const app = express();
 
