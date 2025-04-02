@@ -1,6 +1,6 @@
-import { StatusType } from "../enums/status.enum";
+import { StatusType } from "@prisma/client";
 
-export interface Role {
+export interface RoleModel {
     id: string;
     name: string;
     description: string;
