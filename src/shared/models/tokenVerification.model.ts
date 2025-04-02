@@ -1,12 +1,12 @@
-import { TokenVerificationType } from "../enums/tokenVerification.enum";
+import { TokenVerificationType } from "@prisma/client";
 
-export interface TokenVerification {
+export interface TokenVerificationModel {
     id: string;
     userId: string;
     email: string;
     token: string;
     type: TokenVerificationType;
-    expires: number;
+    expires: bigint;
     isUsed: boolean;
-    createdAt: number;
+    createdAt: bigint;
 }
