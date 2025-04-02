@@ -1,6 +1,6 @@
-export interface UserRole {
+export interface UserRoleModel {
     id: string;
     userId: string;
     roleId: string;
-    createdAt: number;
+    createdAt: bigint;
 }
