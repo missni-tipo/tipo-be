@@ -1,19 +1,18 @@
-import { GenderType } from "../enums/gender.enum";
-import { StatusType } from "../enums/status.enum";
+import { GenderType, StatusType } from "@prisma/client";
 
-export interface User {
+export interface UserModel {
     id: string;
     fullName: string;
-    gender?: GenderType;
+    gender: GenderType | null;
     email: string;
-    phoneNumber?: string;
-    passwordHash?: string;
-    pinHash?: string;
+    phoneNumber: string | null;
+    passwordHash: string | null;
+    pinHash: string | null;
     status: StatusType;
-    picture?: string;
-    birthdate?: Date;
-    domicile?: string;
-    profileCompletedAt?: number;
-    createdAt: number;
-    updatedAt?: number;
+    picture: string | null;
+    birthdate: Date | null;
+    domicile: string | null;
+    profileCompletedAt: bigint | null;
+    createdAt: bigint;
+    updatedAt: bigint | null;
 }
